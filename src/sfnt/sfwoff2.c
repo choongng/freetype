@@ -1089,8 +1089,25 @@
         substreams[N_POINTS_STREAM].offset = FT_STREAM_POS();
 
         flag_size = total_n_points;
-        if ( flag_size > substreams[FLAG_STREAM].size )
+
+        /* Check against remaining FLAG_STREAM bytes, not total size.   */
+        /* The offset is cumulative across glyphs, so we must compute   */
+        /* the remaining space from the current offset to stream end.   */
+        if ( substreams[FLAG_STREAM].size <
+               ( substreams[FLAG_STREAM].offset -
+                 substreams[FLAG_STREAM].start ) )
           goto Fail;
+
+        {
+          FT_ULong  flag_stream_remaining;
+
+
+          flag_stream_remaining = substreams[FLAG_STREAM].size -
+                                    ( substreams[FLAG_STREAM].offset -
+                                      substreams[FLAG_STREAM].start );
+          if ( flag_size > flag_stream_remaining )
+            goto Fail;
+        }
 
         flags_buf   = stream->base + substreams[FLAG_STREAM].offset;
         triplet_buf = stream->base + substreams[GLYPH_STREAM].offset;
